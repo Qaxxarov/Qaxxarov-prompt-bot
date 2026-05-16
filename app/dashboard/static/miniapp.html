@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <title>Agro AI</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root{--bg:#0f1117;--surface:#1a1d27;--surface2:#242836;--border:#2d3348;--text:#e4e7f0;--text2:#8b92a8;--accent:#6366f1;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--radius:14px}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;overflow-x:hidden}
+        .container{padding:16px;max-width:480px;margin:0 auto}
+        .header{text-align:center;padding:20px 0 16px}
+        .header h1{font-size:20px;font-weight:700}
+        .header p{font-size:12px;color:var(--text2);margin-top:4px}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;-webkit-user-select:none}
+        .card:active{transform:scale(.96);box-shadow:0 0 0 2px var(--accent)}
+        .card-icon{font-size:24px;margin-bottom:6px}
+        .card-label{font-size:11px;color:var(--text2);font-weight:500}
+        .card-value{font-size:20px;font-weight:700;margin-top:2px}
+        .stat-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+        .stat-label{font-size:13px;color:var(--text2)}
+        .stat-value{font-size:14px;font-weight:600}
+        .section{margin-bottom:20px}
+        .section-title{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+        .score-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:6px}
+        .score-fill{height:100%;border-radius:3px;transition:width .6s ease}
+        .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;margin-bottom:8px}
+        .btn-primary{background:var(--accent);color:#fff}
+        .btn-primary:active{background:#4f46e5}
+        .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 env(safe-area-inset-bottom,8px);z-index:100}
+        .nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:10px;color:var(--text2);border:none;background:none}
+        .nav-btn.active{color:var(--accent)}
+        .nav-btn span{font-size:18px}
+        .page{display:none}.page.active{display:block}
+        .loading{text-align:center;padding:40px;color:var(--text2)}
+        .ai-result{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:12px;font-size:13px;line-height:1.6;white-space:pre-wrap;max-height:60vh;overflow-y:auto}
+        .ai-btn{display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;width:100%;text-align:left;font-size:13px;color:var(--text)}
+        .ai-btn:active{background:var(--surface2)}
+        .ai-btn span{font-size:18px}
+        .green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}.accent{color:var(--accent)}
+        .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+        .badge-green{background:#10b98120;color:var(--green)}
+        .badge-red{background:#ef444420;color:var(--red)}
+    </style>
+</head>
+<body>
+    <!-- PAGES -->
+    <div id="page-home" class="page active">
+        <div class="container">
+            <div class="header"><h1>🌿 Agro AI</h1><p id="account-label">Yuklanmoqda...</p></div>
+            <div class="grid" id="stats-grid"></div>
+            <div class="section"><div class="section-title">📋 Intizom</div><div id="discipline-bar"></div></div>
+            <div class="section"><div class="section-title">⚡ Tezkor Amallar</div>
+                <button class="btn btn-primary" onclick="runPipeline()">🎬 Kontent Pipeline</button>
+                <button class="btn btn-secondary" onclick="nav('ai')">🤖 AI Center</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-analytics" class="page">
+        <div class="container">
+            <div class="header"><h1>📈 Analytics</h1></div>
+            <div id="analytics-content" class="loading">Yuklanmoqda...</div>
+        </div>
+    </div>
+
+    <div id="page-ai" class="page">
+        <div class="container">
+            <div class="header"><h1>🤖 AI Center</h1></div>
+            <div class="ai-btn" onclick="runAI('hooks','viral')"><span>🎣</span>Viral Hooklar</div>
+            <div class="ai-btn" onclick="runAI('storytelling','transformation')"><span>🎭</span>Ssenariy Yaratish</div>
+            <div class="ai-btn" onclick="runAI('veo','golden_harvest')"><span>🎞</span>Veo Prompt</div>
+            <div class="ai-btn" onclick="runAI('audience','')"><span>🧠</span>Auditoriya Tahlili</div>
+            <div class="ai-btn" onclick="runPipeline()"><span>🎬</span>To'liq Pipeline</div>
+            <div class="ai-btn" onclick="runTrend()"><span>📡</span>Trend Radar</div>
+            <div id="ai-output"></div>
+        </div>
+    </div>
+
+    <div id="page-trends" class="page">
+        <div class="container">
+            <div class="header"><h1>📡 Trend Radar</h1></div>
+            <div class="ai-btn" onclick="trendAction('detect')"><span>🔍</span>Trendlarni Aniqlash</div>
+            <div class="ai-btn" onclick="trendAction('predict')"><span>🔮</span>Bashorat</div>
+            <div class="ai-btn" onclick="trendAction('hooks')"><span>⚡</span>Hook Trendlari</div>
+            <div class="ai-btn" onclick="trendAction('daily')"><span>📋</span>Kunlik Hisobot</div>
+            <div id="trend-output"></div>
+        </div>
+    </div>
+
+    <div id="page-settings" class="page">
+        <div class="container">
+            <div class="header"><h1>⚙️ Sozlamalar</h1></div>
+            <div id="settings-content"></div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-btn active" onclick="nav('home')"><span>🏠</span>Bosh</div>
+        <div class="nav-btn" onclick="nav('analytics')"><span>📈</span>Tahlil</div>
+        <div class="nav-btn" onclick="nav('ai')"><span>🤖</span>AI</div>
+        <div class="nav-btn" onclick="nav('trends')"><span>📡</span>Trend</div>
+        <div class="nav-btn" onclick="nav('settings')"><span>⚙️</span>Sozlama</div>
+    </div>
+
+    <script>
+    // ── Telegram WebApp ──
+    const tg = window.Telegram?.WebApp;
+    let TOKEN = '';
+    const API = '';
+
+    async function init() {
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            // Apply Telegram theme
+            if (tg.colorScheme === 'light') {
+                document.documentElement.style.setProperty('--bg','#f8fafc');
+                document.documentElement.style.setProperty('--surface','#fff');
+                document.documentElement.style.setProperty('--surface2','#f1f5f9');
+                document.documentElement.style.setProperty('--border','#e2e8f0');
+                document.documentElement.style.setProperty('--text','#1e293b');
+                document.documentElement.style.setProperty('--text2','#64748b');
+            }
+            // Auth via Telegram
+            try {
+                const r = await fetch(API+'/api/auth/telegram', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({init_data: tg.initData || ''})
+                });
+                if (r.ok) {
+                    const d = await r.json();
+                    TOKEN = d.token;
+                } else {
+                    // Fallback to password
+                    TOKEN = localStorage.getItem('agro_token') || '';
+                }
+            } catch(e) {
+                TOKEN = localStorage.getItem('agro_token') || '';
+            }
+        } else {
+            TOKEN = localStorage.getItem('agro_token') || '';
+        }
+
+        if (!TOKEN) {
+            // Simple password prompt for non-Telegram access
+            const pw = prompt('Parol:');
+            if (pw) {
+                try {
+                    const r = await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+                    if(r.ok){const d=await r.json();TOKEN=d.token;localStorage.setItem('agro_token',TOKEN);}
+                } catch(e){}
+            }
+        }
+
+        if (TOKEN) loadHome();
+    }
+
+    async function api(path, opts={}) {
+        try {
+            const r = await fetch(API+path, {...opts, headers:{...opts.headers,'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'}});
+            if (r.status===401) { TOKEN=''; return null; }
+            return await r.json();
+        } catch(e) { return null; }
+    }
+
+    // ── Navigation ──
+    function nav(page) {
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        document.getElementById('page-'+page).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+        event?.target?.closest?.('.nav-btn')?.classList.add('active');
+        if(page==='home') loadHome();
+        else if(page==='analytics') loadAnalytics();
+        else if(page==='settings') loadSettings();
+    }
+
+    // ── Home ──
+    async function loadHome() {
+        const d = await api('/api/overview');
+        if(!d) return;
+        const s=d.state, disc=d.discipline;
+        document.getElementById('account-label').textContent = d.account.instagram;
+        document.getElementById('stats-grid').innerHTML = `
+            <div class="card"><div class="card-icon">👥</div><div class="card-label">Followers</div><div class="card-value">${s.followers.toLocaleString()}</div></div>
+            <div class="card"><div class="card-icon">👁</div><div class="card-label">Views</div><div class="card-value">${s.avg_views.toLocaleString()}</div></div>
+            <div class="card"><div class="card-icon">📈</div><div class="card-label">ER</div><div class="card-value ${s.avg_er>=3?'green':s.avg_er>=1?'yellow':'red'}">${s.avg_er}%</div></div>
+            <div class="card"><div class="card-icon">🔥</div><div class="card-label">Streak</div><div class="card-value ${s.posting_streak>=7?'green':s.posting_streak>=3?'yellow':'red'}">${s.posting_streak} kun</div></div>
+        `;
+        const scoreColor = disc.score>=70?'var(--green)':disc.score>=40?'var(--yellow)':'var(--red)';
+        document.getElementById('discipline-bar').innerHTML = `
+            <div class="stat-row"><span class="stat-label">Score</span><span class="stat-value">${disc.score}/100 <span class="badge ${disc.score>=70?'badge-green':'badge-red'}">${disc.grade.split('(')[0].trim()}</span></span></div>
+            <div class="score-bar"><div class="score-fill" style="width:${disc.score}%;background:${scoreColor}"></div></div>
+        `;
+    }
+
+    // ── Analytics ──
+    async function loadAnalytics() {
+        const c = document.getElementById('analytics-content');
+        c.innerHTML = '<div class="loading">Yuklanmoqda...</div>';
+        const d = await api('/api/analytics');
+        if(!d){c.innerHTML='<p>Xato</p>';return;}
+        let html = `<div class="stat-row"><span class="stat-label">Followers</span><span class="stat-value">${d.current.followers.toLocaleString()}</span></div>
+            <div class="stat-row"><span class="stat-label">O'rtacha Views</span><span class="stat-value">${d.current.avg_views.toLocaleString()}</span></div>
+            <div class="stat-row"><span class="stat-label">ER</span><span class="stat-value">${d.current.avg_er}%</span></div>`;
+        if(d.recent_reels.length){
+            html += '<div class="section-title" style="margin-top:16px">🎬 Oxirgi Reels</div>';
+            d.recent_reels.slice(0,5).forEach((r,i)=>{
+                html += `<div class="stat-row"><span class="stat-label">#${i+1} ${(r.caption||'').slice(0,25)}</span><span class="stat-value">👁${r.views.toLocaleString()}</span></div>`;
+            });
+        }
+        c.innerHTML = html;
+    }
+
+    // ── AI ──
+    async function runAI(engine, param) {
+        const out = document.getElementById('ai-output');
+        out.innerHTML = '<div class="loading">⏳ AI ishlayapti...</div>';
+        const d = await api('/api/ai/generate',{method:'POST',body:JSON.stringify({engine,action:param,params:{category:param,scene:param,arc:param}})});
+        out.innerHTML = d ? `<div class="ai-result">${d.result}</div>` : '<div class="ai-result red">Xato</div>';
+    }
+
+    async function runPipeline() {
+        nav('ai');
+        const out = document.getElementById('ai-output');
+        out.innerHTML = '<div class="loading">⏳ Pipeline ishlayapti (15-30s)...</div>';
+        const d = await api('/api/ai/generate',{method:'POST',body:JSON.stringify({engine:'hooks',action:'pipeline',params:{category:'viral'}})});
+        out.innerHTML = d ? `<div class="ai-result">${d.result}</div>` : '<div class="ai-result red">Xato</div>';
+    }
+
+    async function runTrend() {
+        nav('trends');
+        trendAction('daily');
+    }
+
+    async function trendAction(type) {
+        const out = document.getElementById('trend-output');
+        out.innerHTML = '<div class="loading">⏳ Trend Radar...</div>';
+        const tasks = {detect:'Trendlarni aniqlash',predict:'Bashorat',hooks:'Hook trendlari',daily:'Kunlik hisobot'};
+        const d = await api('/api/ai/generate',{method:'POST',body:JSON.stringify({engine:'hooks',action:type,params:{category:'viral'}})});
+        out.innerHTML = d ? `<div class="ai-result">${d.result}</div>` : '<div class="ai-result red">Xato</div>';
+    }
+
+    // ── Settings ──
+    async function loadSettings() {
+        const c = document.getElementById('settings-content');
+        const d = await api('/api/accounts');
+        if(!d){c.innerHTML='<p>Xato</p>';return;}
+        let html = d.accounts.map(a=>`<div class="stat-row"><span class="stat-label">${a.id===d.active?'✅':'⬜'} ${a.instagram}</span><span class="stat-value">${a.niche.slice(0,20)}</span></div>`).join('');
+        html += `<button class="btn btn-secondary" style="margin-top:16px" onclick="TOKEN='';localStorage.removeItem('agro_token');location.reload()">🚪 Chiqish</button>`;
+        c.innerHTML = html;
+    }
+
+    // ── Init ──
+    init();
+    </script>
+</body>
+</html>

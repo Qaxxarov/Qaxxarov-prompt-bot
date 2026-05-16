@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.env
+data/
+reports/*.json
+reports/*.xlsx
+reports/*.pdf
+logs/
+*.db
+.wdm/
+chrome_agro_*/
