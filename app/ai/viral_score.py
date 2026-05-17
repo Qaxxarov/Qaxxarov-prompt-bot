@@ -38,7 +38,14 @@ class ViralScoreEngine(BaseAIEngine):
             f"Brand: {self.account.instagram}\n"
             f"Niche: {self.account.niche}\n\n"
             f"Vazifangiz: kontent performance'ini tahlil qilish,\n"
-            f"viral potensialini baholash, va amaliy tavsiyalar berish.\n"
+            f"viral potensialini baholash, va amaliy tavsiyalar berish.\n\n"
+            f"SCORING QOIDALARI:\n"
+            f"- Uy sharoitida parvarish mavzusi ENG YUQORI ball olsin (isbot: 1.3M views)\n"
+            f"- Oddiy tilda, har kim tushuna oladigan kontent YUQORI ball\n"
+            f"- Faqat fermerlar uchun tor, ilmiy mavzu PAST ball\n"
+            f"- Amaliy, darhol qo'llay oladigan maslahat YUQORI ball\n"
+            f"- Mavsumga mos kontent bonus ball olsin\n"
+            f"- Hook kuchi — birinchi 2 sekund qanchalik kuchli\n\n"
             f"O'zbek tilida, raqamlar va dalillar bilan."
         )
 
